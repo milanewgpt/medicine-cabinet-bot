@@ -22,6 +22,23 @@
       --accent-dim: #2563eb;
       --accent-glow: rgba(59, 130, 246, 0.35);
       --border: rgba(59, 130, 246, 0.15);
+      --nav-bg: rgba(6, 10, 20, 0.75);
+      --glow-secondary: #1d4ed8;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f5f7fb;
+      --bg-card: rgba(0, 0, 0, 0.03);
+      --bg-card-hover: rgba(0, 0, 0, 0.06);
+      --text-primary: #1a1a2e;
+      --text-secondary: #555e70;
+      --accent: #2563eb;
+      --accent-light: #3b82f6;
+      --accent-dim: #1d4ed8;
+      --accent-glow: rgba(37, 99, 235, 0.25);
+      --border: rgba(37, 99, 235, 0.18);
+      --nav-bg: rgba(245, 247, 251, 0.8);
+      --glow-secondary: #93c5fd;
     }
 
     html { scroll-behavior: smooth; }
@@ -63,7 +80,7 @@
     .bg-glow::after {
       width: 500px;
       height: 500px;
-      background: radial-gradient(circle, #1d4ed8, transparent 70%);
+      background: radial-gradient(circle, var(--glow-secondary), transparent 70%);
       bottom: -10%;
       left: -5%;
       animation: drift 25s ease-in-out infinite alternate-reverse;
@@ -83,10 +100,11 @@
       z-index: 100;
       padding: 1.2rem 2rem;
       backdrop-filter: blur(20px);
-      background: rgba(6, 10, 20, 0.75);
+      background: var(--nav-bg);
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 2.5rem;
       opacity: 0;
       animation: fadeDown 0.6s 0.1s ease-out forwards;
@@ -673,6 +691,143 @@
       color: var(--text-secondary);
     }
 
+    /* --- Theme Switcher --- */
+    .theme-toggle {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.15rem;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      transform: scale(1.1);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    /* --- Contact Form --- */
+    .contact-form {
+      margin-top: 2.5rem;
+    }
+
+    .contact-form h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      color: var(--text-primary);
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.03em;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      outline: none;
+      resize: vertical;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-group input.error,
+    .form-group textarea.error {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .form-group .error-msg {
+      font-size: 0.78rem;
+      color: #ef4444;
+      margin-top: 0.35rem;
+      display: none;
+    }
+
+    .form-group .error-msg.show {
+      display: block;
+    }
+
+    .form-group textarea {
+      min-height: 120px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .form-submit {
+      margin-top: 0.5rem;
+    }
+
+    .form-submit .btn {
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+      text-align: center;
+    }
+
+    .form-success {
+      display: none;
+      padding: 1.2rem;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: 12px;
+      color: #4ade80;
+      font-size: 0.95rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .form-success.show {
+      display: block;
+    }
+
+    /* --- Visit Counter --- */
+    .visit-counter {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .visit-counter span {
+      color: var(--accent-light);
+      font-weight: 600;
+    }
+
     /* --- Divider --- */
     .divider {
       max-width: 880px;
@@ -774,6 +929,7 @@
       .project-grid { grid-template-columns: 1fr; }
       .contact-links { grid-template-columns: 1fr; }
       .contact-link { padding: 1rem 1.2rem; }
+      .form-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -786,6 +942,7 @@
     <a href="#skills">Skills</a>
     <a href="#projects">Projects</a>
     <a href="#contacts">Contact</a>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme"></button>
   </nav>
 
   <!-- Hero -->
@@ -1012,19 +1169,132 @@
           </div>
         </a>
       </div>
+
+      <div class="contact-form reveal-scale">
+        <h3>Write to Me</h3>
+        <form id="contactForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="formName">Name</label>
+              <input type="text" id="formName" placeholder="Your name" autocomplete="name">
+              <p class="error-msg" id="nameError">Please enter your name</p>
+            </div>
+            <div class="form-group">
+              <label for="formEmail">Email</label>
+              <input type="email" id="formEmail" placeholder="your@email.com" autocomplete="email">
+              <p class="error-msg" id="emailError">Please enter a valid email</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="formMessage">Message</label>
+            <textarea id="formMessage" placeholder="Tell me about your project or idea..."></textarea>
+            <p class="error-msg" id="messageError">Please enter a message</p>
+          </div>
+          <div class="form-submit">
+            <button type="submit" class="btn btn-filled">Send Message</button>
+          </div>
+        </form>
+        <div class="form-success" id="formSuccess">Message sent successfully! I'll get back to you soon.</div>
+      </div>
     </div>
   </section>
 
   <footer>
-    &copy; 2026 Mila Arty. Built with &#x1F499;
+    <div>&copy; 2026 Mila Arty. Built with &#x1F499;</div>
+    <div class="visit-counter">Page visits: <span id="visitCount">0</span></div>
   </footer>
 
   <script>
-    const observer = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
-      { threshold: 0.1 }
+    // --- Theme switcher ---
+    const toggle = document.getElementById('themeToggle');
+    const stored = localStorage.getItem('theme');
+    if (stored) document.documentElement.setAttribute('data-theme', stored);
+    function updateIcon() {
+      toggle.textContent = document.documentElement.getAttribute('data-theme') === 'light' ? '\u2600\uFE0F' : '\uD83C\uDF19';
+    }
+    updateIcon();
+    toggle.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next === 'dark' ? '' : next);
+      if (next === 'dark') document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('theme', next === 'dark' ? '' : next);
+      updateIcon();
+    });
+
+    // --- Fade-in on scroll (Intersection Observer) ---
+    const revealObserver = new IntersectionObserver(
+      entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            revealObserver.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
     );
-    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => observer.observe(el));
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => revealObserver.observe(el));
+
+    // --- Contact form validation ---
+    const form = document.getElementById('contactForm');
+    const success = document.getElementById('formSuccess');
+
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function showError(input, msgEl) {
+      input.classList.add('error');
+      msgEl.classList.add('show');
+    }
+
+    function clearError(input, msgEl) {
+      input.classList.remove('error');
+      msgEl.classList.remove('show');
+    }
+
+    const nameInput = document.getElementById('formName');
+    const emailInput = document.getElementById('formEmail');
+    const msgInput = document.getElementById('formMessage');
+
+    [nameInput, emailInput, msgInput].forEach(input => {
+      input.addEventListener('input', () => {
+        clearError(input, input.nextElementSibling);
+      });
+    });
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let valid = true;
+
+      if (!nameInput.value.trim()) {
+        showError(nameInput, document.getElementById('nameError'));
+        valid = false;
+      }
+      if (!validateEmail(emailInput.value.trim())) {
+        showError(emailInput, document.getElementById('emailError'));
+        valid = false;
+      }
+      if (!msgInput.value.trim()) {
+        showError(msgInput, document.getElementById('messageError'));
+        valid = false;
+      }
+
+      if (valid) {
+        form.style.display = 'none';
+        success.classList.add('show');
+        setTimeout(() => {
+          form.reset();
+          form.style.display = '';
+          success.classList.remove('show');
+        }, 4000);
+      }
+    });
+
+    // --- Visit counter ---
+    let visits = parseInt(localStorage.getItem('visitCount') || '0', 10) + 1;
+    localStorage.setItem('visitCount', visits);
+    document.getElementById('visitCount').textContent = visits;
   </script>
 </body>
 </html>
