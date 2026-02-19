@@ -1,0 +1,9 @@
+{
+  "name": "mila-arty-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "rag": "node rag.js"
+  },
+  "dependencies": {}
+}

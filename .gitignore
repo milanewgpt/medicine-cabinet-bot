@@ -1,11 +1,15 @@
 # Environment & secrets
 .env
 .env.*
+.env.local
 *.pem
 *.key
 *.secret
 credentials.json
 secrets.json
+
+# Vercel
+.vercel/
 
 # OS
 Thumbs.db
