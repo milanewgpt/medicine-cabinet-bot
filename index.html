@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mila Arty — Web3 Ambassador</title>
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #060a14;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --bg-card-hover: rgba(255, 255, 255, 0.07);
+      --text-primary: #e4e8f0;
+      --text-secondary: #8b95a8;
+      --accent: #3b82f6;
+      --accent-light: #60a5fa;
+      --accent-dim: #2563eb;
+      --accent-glow: rgba(59, 130, 246, 0.35);
+      --border: rgba(59, 130, 246, 0.15);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* --- Background --- */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+    }
+
+    .bg-glow::before,
+    .bg-glow::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.3;
+    }
+
+    .bg-glow::before {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--accent-dim), transparent 70%);
+      top: -10%;
+      right: -5%;
+      animation: drift 20s ease-in-out infinite alternate;
+    }
+
+    .bg-glow::after {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #1d4ed8, transparent 70%);
+      bottom: -10%;
+      left: -5%;
+      animation: drift 25s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes drift {
+      0%   { transform: translate(0, 0) scale(1); }
+      50%  { transform: translate(40px, -30px) scale(1.1); }
+      100% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* --- Navigation --- */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      padding: 1.2rem 2rem;
+      backdrop-filter: blur(20px);
+      background: rgba(6, 10, 20, 0.75);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      gap: 2.5rem;
+      opacity: 0;
+      animation: fadeDown 0.6s 0.1s ease-out forwards;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: color 0.3s, text-shadow 0.3s;
+      position: relative;
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+      transition: width 0.3s, left 0.3s;
+    }
+
+    nav a:hover {
+      color: var(--accent-light);
+      text-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    nav a:hover::after {
+      width: 100%;
+      left: 0;
+    }
+
+    /* --- Sections --- */
+    section {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-label::before {
+      content: '';
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    /* --- Hero --- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding-top: 5rem;
+      padding-bottom: 2rem;
+    }
+
+    .hero-inner {
+      display: flex;
+      align-items: center;
+      gap: 4rem;
+      width: 100%;
+    }
+
+    .hero-text { flex: 1; }
+
+    .hero-photo {
+      flex-shrink: 0;
+      opacity: 0;
+      animation: zoomIn 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .avatar-wrapper {
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      padding: 4px;
+      background: linear-gradient(135deg, var(--accent-dim), var(--accent-light), var(--accent-dim));
+      animation: ringPulse 4s ease-in-out infinite;
+      transition: transform 0.4s, box-shadow 0.4s;
+    }
+
+    .avatar-wrapper:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 50px var(--accent-glow);
+    }
+
+    .avatar-wrapper img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      border: 3px solid var(--bg-primary);
+    }
+
+    @keyframes ringPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+      50%      { box-shadow: 0 0 40px rgba(59, 130, 246, 0.4); }
+    }
+
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.8) rotate(-3deg); }
+      to   { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    .hero-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.9rem;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      color: #4ade80;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #4ade80;
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    .hero-greeting {
+      font-size: 1.1rem;
+      color: var(--accent-light);
+      margin-bottom: 0.75rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .hero-name {
+      font-size: clamp(2.5rem, 7vw, 4.2rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-light) 50%, var(--accent) 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .hero-title {
+      font-size: clamp(1.1rem, 3vw, 1.4rem);
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-bottom: 1.25rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .hero-description {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .hero-cta {
+      margin-top: 2rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 1.8rem;
+      border: 1px solid var(--accent);
+      color: var(--accent-light);
+      text-decoration: none;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      border-radius: 8px;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      background: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, var(--accent-glow), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+
+    .btn:hover {
+      background: rgba(59, 130, 246, 0.1);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.2), 0 4px 20px rgba(0,0,0,0.3);
+      transform: translateY(-3px);
+    }
+
+    .btn:hover::before { opacity: 1; }
+
+    .btn-filled {
+      background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+      border-color: transparent;
+      color: #fff;
+    }
+
+    .btn-filled:hover {
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      box-shadow: 0 0 35px rgba(59, 130, 246, 0.4), 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- About --- */
+    .about {
+      padding-top: 6rem;
+      padding-bottom: 4rem;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+
+    .about-text p {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .about-text p strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .about-sidebar h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    .skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .skill-tag {
+      padding: 0.35rem 0.9rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: default;
+    }
+
+    .skill-tag:hover {
+      border-color: var(--accent);
+      color: var(--accent-light);
+      background: rgba(59, 130, 246, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .stat-card {
+      padding: 1.2rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: center;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .stat-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.12);
+    }
+
+    .stat-number {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-light), var(--accent));
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      line-height: 1.2;
+    }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    /* --- My Skills --- */
+    .my-skills {
+      padding-top: 4rem;
+      padding-bottom: 4rem;
+    }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.2rem;
+    }
+
+    .skill-card {
+      padding: 1.8rem 1.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skill-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .skill-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      transform: translateY(-6px);
+      box-shadow: 0 12px 35px rgba(59, 130, 246, 0.15), 0 0 0 1px rgba(59, 130, 246, 0.1);
+    }
+
+    .skill-card:hover::before { opacity: 1; }
+
+    .skill-card-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+      display: block;
+      line-height: 1;
+    }
+
+    .skill-card h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      transition: color 0.3s;
+    }
+
+    .skill-card:hover h4 {
+      color: var(--accent-light);
+    }
+
+    .skill-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* --- Projects --- */
+    .projects {
+      padding-top: 2rem;
+      padding-bottom: 4rem;
+    }
+
+    .project-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+
+    .project-card {
+      padding: 1.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .project-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-card-hover);
+      transform: translateY(-6px);
+      box-shadow: 0 12px 35px rgba(59, 130, 246, 0.12), 0 0 0 1px rgba(59, 130, 246, 0.1);
+    }
+
+    .project-card:hover::before { opacity: 1; }
+
+    .project-emoji {
+      font-size: 1.6rem;
+      margin-bottom: 0.75rem;
+      display: block;
+    }
+
+    .project-card h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      transition: color 0.3s;
+    }
+
+    .project-card:hover h4 {
+      color: var(--accent-light);
+    }
+
+    .project-card p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .project-tags span {
+      padding: 0.2rem 0.6rem;
+      background: rgba(59, 130, 246, 0.06);
+      border-radius: 4px;
+      font-size: 0.72rem;
+      color: var(--accent-light);
+    }
+
+    /* --- Contacts --- */
+    .contacts {
+      padding-top: 4rem;
+      padding-bottom: 8rem;
+    }
+
+    .contacts-intro {
+      color: var(--text-secondary);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+      max-width: 500px;
+    }
+
+    .contact-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .contact-link {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 1.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contact-link::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(59, 130, 246, 0.08), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .contact-link:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.12);
+    }
+
+    .contact-link:hover::before { opacity: 1; }
+
+    .contact-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(59, 130, 246, 0.1);
+      border-radius: 12px;
+      flex-shrink: 0;
+      transition: all 0.35s;
+    }
+
+    .contact-link:hover .contact-icon {
+      background: rgba(59, 130, 246, 0.2);
+      transform: scale(1.08);
+    }
+
+    .contact-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--accent-light);
+    }
+
+    .contact-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .contact-info span:first-child {
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .contact-info span:last-child {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* --- Divider --- */
+    .divider {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    .divider hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+
+    /* --- Footer --- */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.3s ease-out forwards;
+    }
+
+    /* --- Scroll animations --- */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal-left.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .reveal-right {
+      opacity: 0;
+      transform: translateX(40px);
+      transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal-right.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal-scale.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .stagger-1 { transition-delay: 0.05s; }
+    .stagger-2 { transition-delay: 0.1s; }
+    .stagger-3 { transition-delay: 0.15s; }
+    .stagger-4 { transition-delay: 0.2s; }
+    .stagger-5 { transition-delay: 0.25s; }
+    .stagger-6 { transition-delay: 0.3s; }
+
+    /* --- Mobile --- */
+    @media (max-width: 768px) {
+      nav { gap: 1.5rem; padding: 1rem 1.5rem; }
+      nav a { font-size: 0.8rem; }
+      section { padding: 0 1.25rem; }
+
+      .hero { min-height: auto; padding-top: 7rem; padding-bottom: 3rem; }
+
+      .hero-inner {
+        flex-direction: column-reverse;
+        text-align: center;
+        gap: 2rem;
+      }
+
+      .hero-text { display: flex; flex-direction: column; align-items: center; }
+      .avatar-wrapper { width: 160px; height: 160px; }
+      .hero-status { align-self: center; }
+      .hero-description { text-align: center; }
+      .hero-cta { justify-content: center; }
+
+      .about { padding-top: 4rem; }
+      .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .skills-grid { grid-template-columns: repeat(2, 1fr); }
+      .project-grid { grid-template-columns: 1fr; }
+      .contact-links { grid-template-columns: 1fr; }
+      .contact-link { padding: 1rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <nav>
+    <a href="#hero">Home</a>
+    <a href="#about">About</a>
+    <a href="#skills">Skills</a>
+    <a href="#projects">Projects</a>
+    <a href="#contacts">Contact</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="hero-status">
+          <span class="status-dot"></span>
+          Open for collaborations
+        </div>
+        <p class="hero-greeting">Hey there, I'm</p>
+        <h1 class="hero-name">Mila Arty</h1>
+        <p class="hero-title">Web3 Ambassador &middot; Blockchain Evangelist</p>
+        <p class="hero-description">
+          I bridge the gap between Web3 projects and their communities.
+          Specializing in DeFi, NFTs, and DAO governance.
+          Passionate about onboarding the next billion users into crypto.
+        </p>
+        <div class="hero-cta">
+          <a href="#contacts" class="btn btn-filled">Get in Touch</a>
+          <a href="#projects" class="btn">View Projects</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <div class="avatar-wrapper">
+          <img src="photo.png" alt="Mila Arty" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"><hr></div>
+
+  <!-- About -->
+  <section class="about" id="about">
+    <div class="reveal">
+      <p class="section-label">About Me</p>
+      <div class="about-grid">
+        <div class="about-text reveal-left">
+          <p>
+            <strong>Hi!</strong> I'm Mila — a Web3 Ambassador and blockchain enthusiast.
+            I started my journey exploring Bitcoin in its early days and quickly fell
+            in love with the vision of a decentralized future.
+          </p>
+          <p>
+            Today I help Web3 startups grow their communities, craft strategic
+            partnerships, and communicate complex blockchain concepts to mainstream
+            audiences. From DeFi protocols to NFT platforms — I make Web3 accessible.
+          </p>
+          <p>
+            When I'm not at a crypto conference, you'll find me creating educational
+            content, hosting Twitter Spaces, and mentoring newcomers in the space.
+          </p>
+        </div>
+        <div class="about-sidebar reveal-right">
+          <h3>Expertise</h3>
+          <div class="skills">
+            <span class="skill-tag">DeFi</span>
+            <span class="skill-tag">NFTs</span>
+            <span class="skill-tag">DAO Governance</span>
+            <span class="skill-tag">Tokenomics</span>
+            <span class="skill-tag">Community Building</span>
+            <span class="skill-tag">Content Strategy</span>
+            <span class="skill-tag">Ethereum</span>
+            <span class="skill-tag">Solana</span>
+            <span class="skill-tag">Smart Contracts</span>
+            <span class="skill-tag">KOL Marketing</span>
+            <span class="skill-tag">Event Hosting</span>
+            <span class="skill-tag">Web3 Education</span>
+          </div>
+          <h3>By the Numbers</h3>
+          <div class="stats">
+            <div class="stat-card reveal-scale stagger-1">
+              <div class="stat-number">50+</div>
+              <div class="stat-label">projects supported</div>
+            </div>
+            <div class="stat-card reveal-scale stagger-2">
+              <div class="stat-number">200K+</div>
+              <div class="stat-label">community reach</div>
+            </div>
+            <div class="stat-card reveal-scale stagger-3">
+              <div class="stat-number">30+</div>
+              <div class="stat-label">events hosted</div>
+            </div>
+            <div class="stat-card reveal-scale stagger-4">
+              <div class="stat-number">4</div>
+              <div class="stat-label">years in Web3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"><hr></div>
+
+  <!-- My Skills -->
+  <section class="my-skills" id="skills">
+    <div class="reveal">
+      <p class="section-label">My Skills</p>
+      <div class="skills-grid">
+        <div class="skill-card reveal-scale stagger-1">
+          <span class="skill-card-icon">&#x1F465;</span>
+          <h4>Community Building</h4>
+          <p>Growing and engaging Web3 communities from zero to thousands of active members across Discord, Telegram, and Twitter.</p>
+        </div>
+        <div class="skill-card reveal-scale stagger-2">
+          <span class="skill-card-icon">&#x1F4B0;</span>
+          <h4>Tokenomics</h4>
+          <p>Designing and analyzing token economies — supply models, vesting schedules, and incentive structures that drive growth.</p>
+        </div>
+        <div class="skill-card reveal-scale stagger-3">
+          <span class="skill-card-icon">&#x1F4C8;</span>
+          <h4>DeFi Strategy</h4>
+          <p>Yield farming, liquidity provisioning, and protocol growth strategies to maximize TVL and user retention.</p>
+        </div>
+        <div class="skill-card reveal-scale stagger-4">
+          <span class="skill-card-icon">&#x1F4DD;</span>
+          <h4>Content & Education</h4>
+          <p>Simplifying complex blockchain concepts for mainstream audiences through articles, threads, and video content.</p>
+        </div>
+        <div class="skill-card reveal-scale stagger-5">
+          <span class="skill-card-icon">&#x1F3A4;</span>
+          <h4>Event Hosting</h4>
+          <p>Organizing and hosting IRL meetups, Twitter Spaces, and online Web3 events with hundreds of attendees.</p>
+        </div>
+        <div class="skill-card reveal-scale stagger-6">
+          <span class="skill-card-icon">&#x1F91D;</span>
+          <h4>Partnership Development</h4>
+          <p>Connecting Web3 projects for strategic collaborations, co-marketing campaigns, and mutual ecosystem growth.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"><hr></div>
+
+  <!-- Projects -->
+  <section class="projects" id="projects">
+    <div class="reveal">
+      <p class="section-label">Featured Projects</p>
+      <div class="project-grid">
+        <a href="#" class="project-card reveal-scale stagger-1">
+          <span class="project-emoji">&#x1F310;</span>
+          <h4>MetaDAO Hub</h4>
+          <p>Community management and governance strategy for a cross-chain DAO with 15K+ active members.</p>
+          <div class="project-tags">
+            <span>DAO</span><span>Governance</span><span>Snapshot</span><span>Discord</span>
+          </div>
+        </a>
+        <a href="#" class="project-card reveal-scale stagger-2">
+          <span class="project-emoji">&#x1F4A0;</span>
+          <h4>NeonVault NFT</h4>
+          <p>Ambassador campaign for a generative NFT collection — drove 8K mints in the first 24 hours.</p>
+          <div class="project-tags">
+            <span>NFT</span><span>Marketing</span><span>Ethereum</span><span>OpenSea</span>
+          </div>
+        </a>
+        <a href="#" class="project-card reveal-scale stagger-3">
+          <span class="project-emoji">&#x26A1;</span>
+          <h4>FlashYield DeFi</h4>
+          <p>Community growth strategy for a yield aggregator — scaled TVL from $2M to $40M in three months.</p>
+          <div class="project-tags">
+            <span>DeFi</span><span>Yield</span><span>Solana</span><span>Analytics</span>
+          </div>
+        </a>
+        <a href="#" class="project-card reveal-scale stagger-4">
+          <span class="project-emoji">&#x1F3A4;</span>
+          <h4>CryptoTalks Podcast</h4>
+          <p>Weekly Web3 podcast featuring interviews with founders, investors, and builders in the ecosystem.</p>
+          <div class="project-tags">
+            <span>Content</span><span>Education</span><span>Interviews</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"><hr></div>
+
+  <!-- Contacts -->
+  <section class="contacts" id="contacts">
+    <div class="reveal">
+      <p class="section-label">Get in Touch</p>
+      <p class="contacts-intro">
+        I'm always excited to connect with Web3 projects and communities.
+        Whether it's a partnership or just a chat about crypto — reach out!
+      </p>
+      <div class="contact-links">
+        <a href="mailto:mila.arty@web3.com" class="contact-link">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+          </div>
+          <div class="contact-info">
+            <span>Email</span>
+            <span>mila.arty@web3.com</span>
+          </div>
+        </a>
+        <a href="https://t.me/mila_arty" target="_blank" rel="noopener" class="contact-link">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+          </div>
+          <div class="contact-info">
+            <span>Telegram</span>
+            <span>@mila_arty</span>
+          </div>
+        </a>
+        <a href="https://twitter.com/mila_arty" target="_blank" rel="noopener" class="contact-link">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <div class="contact-info">
+            <span>X (Twitter)</span>
+            <span>@mila_arty</span>
+          </div>
+        </a>
+        <a href="https://linkedin.com/in/mila-arty" target="_blank" rel="noopener" class="contact-link">
+          <div class="contact-icon">
+            <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          </div>
+          <div class="contact-info">
+            <span>LinkedIn</span>
+            <span>linkedin.com/in/mila-arty</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2026 Mila Arty. Built with &#x1F499;
+  </footer>
+
+  <script>
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
