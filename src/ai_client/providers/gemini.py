@@ -1,100 +1,67 @@
-"""GeminiProvider — uses Google Generative AI SDK or HTTP fallback."""
+"""GeminiProvider — pure HTTP integration with Google Gemini API."""
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 
 import httpx
 
 from src.ai_client.base import AIClient
-from src.ai_client.schemas import NLU_EXTRACTION_SCHEMA, SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
+from src.ai_client.schemas import SYSTEM_PROMPT, USER_PROMPT_TEMPLATE
 from src.models import ExtractedQuery
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
-_SDK_AVAILABLE = False
-try:
-    import google.generativeai as genai  # type: ignore[import-untyped]
-    _SDK_AVAILABLE = True
-except ImportError:
-    genai = None  # type: ignore[assignment]
+_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
 class GeminiProvider(AIClient):
     def __init__(self) -> None:
         self._retries = settings.ai_max_retries
-        self._model_name = settings.ai_model or "gemini-1.5-flash"
-        if _SDK_AVAILABLE and settings.ai_api_key:
-            genai.configure(api_key=settings.ai_api_key)  # type: ignore[union-attr]
-            self._model = genai.GenerativeModel(  # type: ignore[union-attr]
-                model_name=self._model_name,
-                system_instruction=SYSTEM_PROMPT,
-                generation_config=genai.GenerationConfig(  # type: ignore[union-attr]
-                    response_mime_type="application/json",
-                ),
-            )
-        else:
-            self._model = None
+        self._model_name = settings.ai_model or "gemini-2.0-flash"
+        self._api_key = settings.ai_api_key
+        self._timeout = settings.ai_timeout_seconds
 
-    # ---- transcribe (SDK does not support standalone STT; fallback) ----
+    def _client(self) -> httpx.AsyncClient:
+        return httpx.AsyncClient(timeout=httpx.Timeout(self._timeout))
 
     async def transcribe_audio(self, audio_bytes: bytes, mime_type: str = "audio/ogg") -> str:
-        if self._model is None:
-            raise NotImplementedError("Gemini SDK not available for transcription")
-
-        import asyncio
-
-        def _sync_transcribe() -> str:
-            response = self._model.generate_content([  # type: ignore[union-attr]
-                "Transcribe the following audio to Russian text. Return ONLY the transcript, nothing else.",
-                {"mime_type": mime_type, "data": audio_bytes},
-            ])
-            return response.text.strip()
-
-        return await asyncio.get_event_loop().run_in_executor(None, _sync_transcribe)
-
-    # ---- extract ----
-
-    async def extract_structured(self, text: str) -> ExtractedQuery:
-        if self._model is None:
-            return await self._extract_via_http(text)
-        return await self._extract_via_sdk(text)
-
-    async def _extract_via_sdk(self, text: str) -> ExtractedQuery:
-        import asyncio
-
-        prompt = USER_PROMPT_TEMPLATE.format(text=text)
-
-        def _sync_call() -> ExtractedQuery:
+        url = f"{_API_BASE}/{self._model_name}:generateContent?key={self._api_key}"
+        audio_b64 = base64.standard_b64encode(audio_bytes).decode()
+        payload = {
+            "contents": [{
+                "parts": [
+                    {"text": "Транскрибируй аудио на русском языке. Верни ТОЛЬКО текст, ничего больше."},
+                    {"inline_data": {"mime_type": mime_type, "data": audio_b64}},
+                ],
+            }],
+        }
+        async with self._client() as client:
             for attempt in range(1, self._retries + 2):
                 try:
-                    response = self._model.generate_content(prompt)  # type: ignore[union-attr]
-                    data = json.loads(response.text)
-                    return ExtractedQuery.model_validate(data)
+                    resp = await client.post(url, json=payload)
+                    resp.raise_for_status()
+                    body = resp.json()
+                    return body["candidates"][0]["content"]["parts"][0]["text"].strip()
                 except Exception:
-                    logger.warning("gemini sdk attempt %d failed", attempt, exc_info=True)
+                    logger.warning("gemini transcribe attempt %d failed", attempt, exc_info=True)
                     if attempt > self._retries:
                         raise
-            return ExtractedQuery()
+        return ""
 
-        return await asyncio.get_event_loop().run_in_executor(None, _sync_call)
-
-    async def _extract_via_http(self, text: str) -> ExtractedQuery:
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self._model_name}:generateContent?key={settings.ai_api_key}"
-        )
+    async def extract_structured(self, text: str) -> ExtractedQuery:
+        url = f"{_API_BASE}/{self._model_name}:generateContent?key={self._api_key}"
         payload = {
             "system_instruction": {"parts": [{"text": SYSTEM_PROMPT}]},
             "contents": [{"parts": [{"text": USER_PROMPT_TEMPLATE.format(text=text)}]}],
             "generationConfig": {
                 "responseMimeType": "application/json",
-                "responseSchema": NLU_EXTRACTION_SCHEMA,
             },
         }
-        async with httpx.AsyncClient(timeout=settings.ai_timeout_seconds) as client:
+        async with self._client() as client:
             for attempt in range(1, self._retries + 2):
                 try:
                     resp = await client.post(url, json=payload)
