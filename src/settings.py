@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     google_sheet_id: str = ""
     google_sheet_tab_name: str = "Sheet1"
 
+    # SSL (path to self-signed cert for Telegram webhook, empty = no custom cert)
+    webhook_ssl_cert: str = ""
+
     # Misc
     timezone: str = "Asia/Jerusalem"
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import pathlib
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
@@ -26,11 +27,21 @@ async def lifespan(app: FastAPI):
     await tg_app.start()
 
     webhook_url = settings.webhook_url
+    cert_path = settings.webhook_ssl_cert
+    certificate = None
+    if cert_path and pathlib.Path(cert_path).is_file():
+        certificate = open(cert_path, "rb")  # noqa: SIM115
+
     await tg_app.bot.set_webhook(
         url=webhook_url,
         secret_token=settings.telegram_webhook_secret or None,
+        certificate=certificate,
     )
-    logger.info("Webhook set: %s", webhook_url)
+    if certificate:
+        certificate.close()
+        logger.info("Webhook set with custom certificate: %s", webhook_url)
+    else:
+        logger.info("Webhook set: %s", webhook_url)
 
     yield
 
