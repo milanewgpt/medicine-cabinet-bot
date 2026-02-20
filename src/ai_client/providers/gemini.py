@@ -33,7 +33,6 @@ class GeminiProvider(AIClient):
                 system_instruction=SYSTEM_PROMPT,
                 generation_config=genai.GenerationConfig(  # type: ignore[union-attr]
                     response_mime_type="application/json",
-                    response_schema=NLU_EXTRACTION_SCHEMA,
                 ),
             )
         else:

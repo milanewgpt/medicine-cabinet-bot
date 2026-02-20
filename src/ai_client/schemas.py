@@ -11,7 +11,8 @@ NLU_EXTRACTION_SCHEMA: dict = {
             "description": "Who is sick: child, adult, or unknown.",
         },
         "child_age": {
-            "type": ["integer", "null"],
+            "type": "integer",
+            "nullable": True,
             "description": "Child age in years if mentioned, else null.",
         },
         "symptoms_raw": {
@@ -24,11 +25,13 @@ NLU_EXTRACTION_SCHEMA: dict = {
             "description": "Normalised symptom keywords in Russian.",
         },
         "temperature_c": {
-            "type": ["number", "null"],
+            "type": "number",
+            "nullable": True,
             "description": "Body temperature in Celsius if mentioned, else null.",
         },
         "duration_days": {
-            "type": ["integer", "null"],
+            "type": "integer",
+            "nullable": True,
             "description": "How many days the symptoms last, else null.",
         },
         "red_flags": {

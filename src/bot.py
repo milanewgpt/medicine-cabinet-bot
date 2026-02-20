@@ -136,13 +136,17 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not msg or not msg.text:
         return
 
-    ai = get_ai()
-    query = await extract_query(ai, msg.text)
-    if query is None:
-        await msg.reply_text(NLU_FALLBACK)
-        return
+    try:
+        ai = get_ai()
+        query = await extract_query(ai, msg.text)
+        if query is None:
+            await msg.reply_text(NLU_FALLBACK)
+            return
 
-    await _process_query(query, update)
+        await _process_query(query, update)
+    except Exception:
+        logger.exception("Error in handle_text")
+        await msg.reply_text("Произошла ошибка. Попробуйте ещё раз чуть позже.")
 
 
 # --------------- Voice handler ---------------
@@ -152,23 +156,27 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     if not msg or not msg.voice:
         return
 
-    voice = msg.voice
-    file = await context.bot.get_file(voice.file_id)
-    audio_bytes = await file.download_as_bytearray()
+    try:
+        voice = msg.voice
+        file = await context.bot.get_file(voice.file_id)
+        audio_bytes = await file.download_as_bytearray()
 
-    ai = get_ai()
-    transcript = await transcribe_voice(ai, bytes(audio_bytes), mime_type="audio/ogg")
+        ai = get_ai()
+        transcript = await transcribe_voice(ai, bytes(audio_bytes), mime_type="audio/ogg")
 
-    if not transcript:
-        await msg.reply_text(TRANSCRIBE_FALLBACK)
-        return
+        if not transcript:
+            await msg.reply_text(TRANSCRIBE_FALLBACK)
+            return
 
-    query = await extract_query(ai, transcript)
-    if query is None:
-        await msg.reply_text(NLU_FALLBACK)
-        return
+        query = await extract_query(ai, transcript)
+        if query is None:
+            await msg.reply_text(NLU_FALLBACK)
+            return
 
-    await _process_query(query, update)
+        await _process_query(query, update)
+    except Exception:
+        logger.exception("Error in handle_voice")
+        await msg.reply_text("Произошла ошибка. Попробуйте ещё раз чуть позже.")
 
 
 # --------------- Build application ---------------
