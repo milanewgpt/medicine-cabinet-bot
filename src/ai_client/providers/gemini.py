@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import logging
@@ -21,7 +22,7 @@ _API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 class GeminiProvider(AIClient):
     def __init__(self) -> None:
         self._retries = settings.ai_max_retries
-        self._model_name = settings.ai_model or "gemini-2.0-flash"
+        self._model_name = settings.ai_model or "gemini-2.5-flash"
         self._api_key = settings.ai_api_key
         self._timeout = settings.ai_timeout_seconds
 
@@ -50,6 +51,7 @@ class GeminiProvider(AIClient):
                     logger.warning("gemini transcribe attempt %d failed", attempt, exc_info=True)
                     if attempt > self._retries:
                         raise
+                    await asyncio.sleep(2 ** attempt)
         return ""
 
     async def extract_structured(self, text: str) -> ExtractedQuery:
@@ -74,4 +76,5 @@ class GeminiProvider(AIClient):
                     logger.warning("gemini http attempt %d failed", attempt, exc_info=True)
                     if attempt > self._retries:
                         raise
+                    await asyncio.sleep(2 ** attempt)
         return ExtractedQuery()
