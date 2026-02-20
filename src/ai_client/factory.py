@@ -11,6 +11,10 @@ def create_ai_client() -> AIClient:
         from src.ai_client.providers.gemini import GeminiProvider
         return GeminiProvider()
 
+    if provider in ("openrouter", "openai"):
+        from src.ai_client.providers.openrouter import OpenRouterProvider
+        return OpenRouterProvider()
+
     if provider == "minimax":
         from src.ai_client.providers.minimax import MiniMaxProvider
         return MiniMaxProvider()

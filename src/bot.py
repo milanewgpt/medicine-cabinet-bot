@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 
 from telegram import Update
 from telegram.ext import (
@@ -30,6 +31,15 @@ logger = logging.getLogger(__name__)
 
 _ai: AIClient | None = None
 
+_ADULT_PATTERN = re.compile(
+    r"^(взрослый|взрослая|взрослого|для\s+взрослого|я|себе|мне|для\s+меня|для\s+себя)$",
+    re.IGNORECASE,
+)
+_CHILD_PATTERN = re.compile(
+    r"^(ребёнок|ребенок|ребенку|ребёнку|дитя|для\s+ребёнка|для\s+ребенка|малыш|сын|дочь|дочка|дочке|сыну|малышу)$",
+    re.IGNORECASE,
+)
+
 
 def get_ai() -> AIClient:
     global _ai
@@ -37,8 +47,6 @@ def get_ai() -> AIClient:
         _ai = create_ai_client()
     return _ai
 
-
-# --------------- /start ---------------
 
 START_TEXT = (
     "Привет! Я помогу подобрать лекарство из домашней аптечки.\n\n"
@@ -69,7 +77,7 @@ INVENTORY_TEXT = (
     "• «есть ли что-то от аллергии»"
 )
 
-ASK_WHO = "Кто болеет — взрослый или ребёнок?"
+ASK_WHO = "Кто болеет — взрослый или ребёнок (возраст)?"
 
 RED_FLAG_PREFIX = "⚠️ Лучше обратиться к врачу или вызвать скорую помощь.\n\n"
 
@@ -96,9 +104,7 @@ async def cmd_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text(INVENTORY_TEXT)  # type: ignore[union-attr]
 
 
-# --------------- Core processing ---------------
-
-async def _process_query(query: ExtractedQuery, update: Update) -> None:
+async def _process_query(query: ExtractedQuery, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Process an extracted query and send the response."""
     msg = update.message
     assert msg is not None
@@ -111,6 +117,7 @@ async def _process_query(query: ExtractedQuery, update: Update) -> None:
         return
 
     if query.person == PersonType.UNKNOWN and query.intent == Intent.WHAT_TO_TAKE:
+        context.user_data["pending_query"] = query  # type: ignore[index]
         await msg.reply_text(ASK_WHO)
         return
 
@@ -129,7 +136,27 @@ async def _process_query(query: ExtractedQuery, update: Update) -> None:
     await msg.reply_text(prefix + text)
 
 
-# --------------- Text handler ---------------
+def _try_resolve_person(text: str) -> PersonType | None:
+    """Check if text is a short answer to 'who is sick?' question."""
+    cleaned = text.strip().rstrip(".!?,;")
+    if _ADULT_PATTERN.match(cleaned):
+        return PersonType.ADULT
+    if _CHILD_PATTERN.match(cleaned):
+        return PersonType.CHILD
+    return None
+
+
+async def _handle_person_answer(
+    person: PersonType,
+    pending: ExtractedQuery,
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE,
+) -> None:
+    """User answered the 'who is sick?' follow-up."""
+    context.user_data.pop("pending_query", None)  # type: ignore[union-attr]
+    pending.person = person
+    await _process_query(pending, update, context)
+
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.message
@@ -137,19 +164,25 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     try:
+        pending: ExtractedQuery | None = context.user_data.get("pending_query")  # type: ignore[union-attr]
+        if pending is not None:
+            person = _try_resolve_person(msg.text)
+            if person is not None:
+                await _handle_person_answer(person, pending, update, context)
+                return
+            context.user_data.pop("pending_query", None)  # type: ignore[union-attr]
+
         ai = get_ai()
         query = await extract_query(ai, msg.text)
         if query is None:
             await msg.reply_text(NLU_FALLBACK)
             return
 
-        await _process_query(query, update)
+        await _process_query(query, update, context)
     except Exception:
         logger.exception("Error in handle_text")
         await msg.reply_text("Произошла ошибка. Попробуйте ещё раз чуть позже.")
 
-
-# --------------- Voice handler ---------------
 
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.message
@@ -173,13 +206,11 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             await msg.reply_text(NLU_FALLBACK)
             return
 
-        await _process_query(query, update)
+        await _process_query(query, update, context)
     except Exception:
         logger.exception("Error in handle_voice")
         await msg.reply_text("Произошла ошибка. Попробуйте ещё раз чуть позже.")
 
-
-# --------------- Build application ---------------
 
 def build_app() -> Application:
     """Build the telegram Application (webhook mode)."""
