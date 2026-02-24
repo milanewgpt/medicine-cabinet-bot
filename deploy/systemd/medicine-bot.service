@@ -1,0 +1,21 @@
+[Unit]
+Description=Medicine Cabinet Telegram Bot
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/medicine-bot
+Environment=PYTHONPATH=/opt/medicine-bot
+
+# NOTE: Use a non-default port if another service uses 8000.
+# On the reference server, ambassador-assistant binds host :8000, so we use 8001 here.
+ExecStart=/opt/medicine-bot/.venv/bin/uvicorn src.main:app --host 127.0.0.1 --port 8001 --workers 1
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

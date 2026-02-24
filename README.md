@@ -233,6 +233,9 @@ ngrok http 8000
 
 ## 6. VPS Deployment (Ubuntu 22.04+)
 
+Note: If you host multiple apps on one VPS, you may need to change the default `8000` port to avoid conflicts.
+The `deploy/` templates use port `8001` as an example.
+
 ### 6.1 Server setup
 
 ```bash
