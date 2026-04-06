@@ -26,7 +26,9 @@ class Settings(BaseSettings):
     ai_max_retries: int = 2
 
     # Google Sheets
+    # Either a file path (local) or the raw JSON content (Vercel/cloud)
     google_service_account_json: str = "service_account.json"
+    google_service_account_json_content: str = ""  # JSON string, takes priority over file
     google_sheet_id: str = ""
     google_sheet_tab_name: str = "Sheet1"
 

@@ -54,9 +54,14 @@ def _row_to_medicine(row: dict[str, str]) -> Medicine:
 
 
 def _fetch_all() -> list[Medicine]:
-    creds = Credentials.from_service_account_file(
-        settings.google_service_account_json, scopes=_SCOPES,
-    )
+    if settings.google_service_account_json_content:
+        import json
+        info = json.loads(settings.google_service_account_json_content)
+        creds = Credentials.from_service_account_info(info, scopes=_SCOPES)
+    else:
+        creds = Credentials.from_service_account_file(
+            settings.google_service_account_json, scopes=_SCOPES,
+        )
     gc = gspread.authorize(creds)
     sh = gc.open_by_key(settings.google_sheet_id)
     ws = sh.worksheet(settings.google_sheet_tab_name)
