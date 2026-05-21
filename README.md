@@ -2,7 +2,7 @@
 
 Intelligent Telegram bot for a family medicine cabinet. The bot does **NOT** diagnose or prescribe treatment — it only selects medicines from an existing Google Sheets inventory based on user-described symptoms.
 
-All user interaction is in **Russian**.
+> Russian-first project: the Telegram bot interface, symptom phrases, Google Sheet examples, and safety copy are intentionally designed for Russian-speaking users.
 
 ---
 
