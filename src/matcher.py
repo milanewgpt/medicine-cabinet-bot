@@ -113,6 +113,13 @@ def match_medicines(
 
 # --------------- Format output ---------------
 
+def _med_label(r: MatchResult) -> str:
+    """Name + form (if set) + symptoms/category hint."""
+    name = r.medicine.name
+    form = f" ({r.medicine.form})" if r.medicine.form else ""
+    hint = r.medicine.symptoms or r.medicine.category
+    return f"• {name}{form} — {hint}"
+
 def format_what_to_take(
     query: ExtractedQuery,
     results: list[MatchResult],
@@ -134,7 +141,7 @@ def format_what_to_take(
         if child_safe:
             lines.append("Можно рассмотреть (детям):")
             for r in child_safe:
-                lines.append(f"• {r.medicine.name} — {r.medicine.symptoms or r.medicine.category}")
+                lines.append(_med_label(r))
 
         if child_doc:
             lines.append("\nТолько по назначению врача (детям):")
@@ -146,7 +153,7 @@ def format_what_to_take(
             if adult_only or adult_doc:
                 lines.append("\nВ аптечке есть только взрослое средство:")
                 for r in adult_only:
-                    lines.append(f"• {r.medicine.name} — {r.medicine.symptoms or r.medicine.category}")
+                    lines.append(_med_label(r))
                 for r in adult_doc:
                     lines.append(f"• {r.medicine.name} (только по назначению врача)")
     else:
@@ -157,7 +164,7 @@ def format_what_to_take(
         if regular:
             lines.append("Можно рассмотреть:")
             for r in regular:
-                lines.append(f"• {r.medicine.name} — {r.medicine.symptoms or r.medicine.category}")
+                lines.append(_med_label(r))
 
         if doc_only:
             lines.append("\nТолько по назначению врача:")

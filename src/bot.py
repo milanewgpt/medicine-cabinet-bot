@@ -105,6 +105,48 @@ async def cmd_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text(INVENTORY_TEXT)  # type: ignore[union-attr]
 
 
+async def cmd_debug(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Show matching debug info for a symptom."""
+    msg = update.message
+    assert msg is not None
+    parts = (msg.text or "").split(maxsplit=1)
+    symptom = parts[1].strip() if len(parts) > 1 else "температура"
+
+    medicines = get_medicines()
+    child_safe_all = [m for m in medicines if m.child_safe]
+    from src.matcher import _expand_symptoms, _score_medicine, _SCORE_THRESHOLD
+    expanded = _expand_symptoms([symptom])
+    matched_all = [(m, _score_medicine(m, expanded)) for m in medicines]
+    matched_all = [(m, s) for m, s in matched_all if s >= _SCORE_THRESHOLD]
+    matched_child = [(m, s) for m, s in matched_all if m.child_safe]
+
+    lines = [
+        f"🔍 Симптом: <b>{symptom}</b>",
+        f"Всего лекарств: {len(medicines)}",
+        f"Детских (child_safe=да): {len(child_safe_all)}",
+        f"Матчей по симптому: {len(matched_all)}",
+        f"Детских матчей: {len(matched_child)}",
+        "",
+    ]
+    if matched_child:
+        lines.append("Детские совпадения:")
+        for m, s in matched_child[:5]:
+            lines.append(f"• {m.name} ({m.form}) — score {s:.0f}")
+    elif matched_all:
+        lines.append("Взрослые совпадения (без детских):")
+        for m, s in matched_all[:5]:
+            lines.append(f"• {m.name} child_safe={m.child_safe} score={s:.0f}")
+    else:
+        lines.append("❌ Вообще нет совпадений")
+        lines.append(f"Expanded: {expanded[:5]}")
+        # show sample med texts
+        for m in medicines[:3]:
+            from src.utils import normalize_russian
+            lines.append(f"  sample: '{normalize_russian(m.symptoms + ' ' + m.category)[:60]}'")
+
+    await msg.reply_text("\n".join(lines), parse_mode="HTML")
+
+
 async def cmd_reload(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Force-reload Google Sheets and report status."""
     msg = update.message
@@ -286,6 +328,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(CommandHandler("inventory", cmd_inventory))
     app.add_handler(CommandHandler("reload", cmd_reload))
+    app.add_handler(CommandHandler("debug", cmd_debug))
     app.add_handler(CallbackQueryHandler(handle_who_callback, pattern=r"^who:"))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
