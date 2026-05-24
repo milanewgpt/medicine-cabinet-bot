@@ -5,9 +5,10 @@ from __future__ import annotations
 import logging
 import re
 
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     Application,
+    CallbackQueryHandler,
     CommandHandler,
     ContextTypes,
     MessageHandler,
@@ -132,9 +133,17 @@ async def _process_query(query: ExtractedQuery, update: Update, context: Context
         )
         return
 
-    # NOTE: Vercel serverless — context.user_data is lost between requests.
-    # Do NOT use multi-step follow-up. Process immediately even if person=UNKNOWN.
-    # format_what_to_take handles UNKNOWN by showing all medicines.
+    # Serverless-safe follow-up: encode query in callback_data, no memory needed.
+    if query.person == PersonType.UNKNOWN and query.intent == Intent.WHAT_TO_TAKE:
+        symptoms_str = ",".join(query.symptoms)[:50]  # keep under 64-byte limit
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton("👶 Ребёнок", callback_data=f"who:child:{symptoms_str}"),
+                InlineKeyboardButton("🧑 Взрослый", callback_data=f"who:adult:{symptoms_str}"),
+            ]
+        ])
+        await msg.reply_text("Кто болеет — ребёнок или взрослый?", reply_markup=keyboard)
+        return
 
     medicines = get_medicines()
 
@@ -231,6 +240,40 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await msg.reply_text("Произошла ошибка. Попробуйте ещё раз чуть позже.")
 
 
+async def handle_who_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle inline button press for child/adult selection."""
+    query = update.callback_query
+    assert query is not None
+    await query.answer()
+
+    data = query.data or ""
+    # format: "who:child:симптом1,симптом2" or "who:adult:симптом1,симптом2"
+    parts = data.split(":", 2)
+    if len(parts) != 3 or parts[0] != "who":
+        await query.edit_message_text("Что-то пошло не так. Попробуйте написать заново.")
+        return
+
+    _, person_str, symptoms_str = parts
+    person = PersonType.CHILD if person_str == "child" else PersonType.ADULT
+    symptoms = [s.strip() for s in symptoms_str.split(",") if s.strip()]
+
+    medicines = get_medicines()
+    if not medicines:
+        _, sheet_error = get_sheet_status()
+        if sheet_error:
+            await query.edit_message_text(f"⚠️ Ошибка загрузки таблицы: {sheet_error[:200]}")
+            return
+
+    extracted = ExtractedQuery(symptoms=symptoms, intent=Intent.WHAT_TO_TAKE, person=person)
+    results = match_medicines(extracted, medicines)
+
+    prefix = "👶 Для ребёнка:\n" if person == PersonType.CHILD else "🧑 Для взрослого:\n"
+    text = prefix + format_what_to_take(extracted, results)
+
+    # Edit original message — no duplicate (per CLAUDE.md inline button rule)
+    await query.edit_message_text(text)
+
+
 def build_app() -> Application:
     """Build the telegram Application (webhook mode)."""
     app = (
@@ -243,6 +286,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(CommandHandler("inventory", cmd_inventory))
     app.add_handler(CommandHandler("reload", cmd_reload))
+    app.add_handler(CallbackQueryHandler(handle_who_callback, pattern=r"^who:"))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 

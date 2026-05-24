@@ -149,27 +149,6 @@ def format_what_to_take(
                     lines.append(f"• {r.medicine.name} — {r.medicine.symptoms or r.medicine.category}")
                 for r in adult_doc:
                     lines.append(f"• {r.medicine.name} (только по назначению врача)")
-    elif query.person == PersonType.UNKNOWN:
-        # Serverless: person not specified — split into child-safe and adult-only sections
-        child_safe = [r for r in results if r.medicine.child_safe and not r.doctor_only]
-        adult_only = [r for r in results if not r.medicine.child_safe and not r.doctor_only]
-        doc_only = [r for r in results if r.doctor_only]
-
-        lines.append("💊 Что есть в аптечке:")
-        if child_safe:
-            lines.append("\n🧒 Можно и детям и взрослым:")
-            for r in child_safe:
-                lines.append(f"• {r.medicine.name} — {r.medicine.symptoms or r.medicine.category}")
-        if adult_only:
-            lines.append("\n🧑 Только взрослым:")
-            for r in adult_only:
-                lines.append(f"• {r.medicine.name} — {r.medicine.symptoms or r.medicine.category}")
-        if doc_only:
-            lines.append("\nТолько по назначению врача:")
-            for r in doc_only:
-                lines.append(f"• {r.medicine.name}")
-
-        lines.append("\n_Для поиска по возрасту уточните: «температура у ребёнка» или «температура взрослый»_")
     else:
         # PersonType.ADULT
         regular = [r for r in results if not r.doctor_only]
