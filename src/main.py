@@ -6,7 +6,9 @@ import logging
 import pathlib
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, Response
+import asyncio
+
+from fastapi import BackgroundTasks, FastAPI, Request, Response
 from telegram import Update
 
 from src.bot import build_app
@@ -36,6 +38,7 @@ async def lifespan(app: FastAPI):
         url=webhook_url,
         secret_token=settings.telegram_webhook_secret or None,
         certificate=certificate,
+        allowed_updates=["message", "callback_query"],
     )
     if certificate:
         certificate.close()
@@ -53,7 +56,7 @@ app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
 
 @app.post("/webhook")
-async def webhook(request: Request) -> Response:
+async def webhook(request: Request, background_tasks: BackgroundTasks) -> Response:
     if settings.telegram_webhook_secret:
         token = request.headers.get("X-Telegram-Bot-Api-Secret-Token", "")
         if token != settings.telegram_webhook_secret:
@@ -61,7 +64,8 @@ async def webhook(request: Request) -> Response:
 
     data = await request.json()
     update = Update.de_json(data, tg_app.bot)
-    await tg_app.process_update(update)
+    # Process in background so we return 200 immediately — prevents Telegram retries
+    background_tasks.add_task(tg_app.process_update, update)
     return Response(status_code=200)
 
 
