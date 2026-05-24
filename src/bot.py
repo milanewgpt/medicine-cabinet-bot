@@ -132,10 +132,9 @@ async def _process_query(query: ExtractedQuery, update: Update, context: Context
         )
         return
 
-    if query.person == PersonType.UNKNOWN and query.intent == Intent.WHAT_TO_TAKE:
-        context.user_data["pending_query"] = query  # type: ignore[index]
-        await msg.reply_text(ASK_WHO)
-        return
+    # NOTE: Vercel serverless — context.user_data is lost between requests.
+    # Do NOT use multi-step follow-up. Process immediately even if person=UNKNOWN.
+    # format_what_to_take handles UNKNOWN by showing all medicines.
 
     medicines = get_medicines()
 
@@ -192,14 +191,6 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         return
 
     try:
-        pending: ExtractedQuery | None = context.user_data.get("pending_query")  # type: ignore[union-attr]
-        if pending is not None:
-            person = _try_resolve_person(msg.text)
-            if person is not None:
-                await _handle_person_answer(person, pending, update, context)
-                return
-            context.user_data.pop("pending_query", None)  # type: ignore[union-attr]
-
         ai = get_ai()
         query = await extract_query(ai, msg.text)
         if query is None:
