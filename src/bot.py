@@ -24,7 +24,7 @@ from src.matcher import (
 from src.models import ExtractedQuery, Intent, PersonType
 from src.nlu import extract_query, transcribe_voice
 from src.safety import has_red_flags
-from src.sheets import get_medicines
+from src.sheets import get_medicines, get_sheet_status
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
@@ -104,6 +104,22 @@ async def cmd_inventory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_text(INVENTORY_TEXT)  # type: ignore[union-attr]
 
 
+async def cmd_reload(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Force-reload Google Sheets and report status."""
+    msg = update.message
+    assert msg is not None
+    await msg.reply_text("🔄 Перезагружаю данные из Google Sheets…")
+    get_medicines(force_refresh=True)
+    count, error = get_sheet_status()
+    if error:
+        await msg.reply_text(
+            f"❌ Ошибка загрузки таблицы:\n<code>{error[:400]}</code>",
+            parse_mode="HTML",
+        )
+    else:
+        await msg.reply_text(f"✅ Загружено {count} лекарств из таблицы.")
+
+
 async def _process_query(query: ExtractedQuery, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Process an extracted query and send the response."""
     msg = update.message
@@ -122,6 +138,18 @@ async def _process_query(query: ExtractedQuery, update: Update, context: Context
         return
 
     medicines = get_medicines()
+
+    # If sheet failed to load — tell the user explicitly instead of "not found"
+    if not medicines:
+        _, sheet_error = get_sheet_status()
+        if sheet_error:
+            await msg.reply_text(
+                "⚠️ Не удалось загрузить аптечку из Google Sheets.\n"
+                f"Ошибка: <code>{sheet_error[:200]}</code>",
+                parse_mode="HTML",
+            )
+            return
+
     results = match_medicines(query, medicines)
 
     prefix = ""
@@ -223,6 +251,7 @@ def build_app() -> Application:
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(CommandHandler("inventory", cmd_inventory))
+    app.add_handler(CommandHandler("reload", cmd_reload))
     app.add_handler(MessageHandler(filters.VOICE, handle_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
 

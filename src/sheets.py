@@ -23,6 +23,7 @@ _SCOPES = [
 _cache: list[Medicine] = []
 _cache_ts: float = 0.0
 _CACHE_TTL = 300  # 5 minutes
+_last_error: str = ""  # last fetch error message
 
 
 def _parse_date(raw: str) -> Optional[datetime.date]:
@@ -76,14 +77,23 @@ def _fetch_all() -> list[Medicine]:
 
 
 def get_medicines(force_refresh: bool = False) -> list[Medicine]:
-    global _cache, _cache_ts
+    global _cache, _cache_ts, _last_error
     now = time.time()
     if force_refresh or not _cache or (now - _cache_ts > _CACHE_TTL):
         try:
             _cache = _fetch_all()
             _cache_ts = now
-        except Exception:
+            _last_error = ""
+        except Exception as exc:
+            _last_error = str(exc)
             logger.exception("Failed to refresh sheet data")
             if _cache:
                 logger.warning("Using stale cache")
     return _cache
+
+
+def get_sheet_status() -> tuple[int, str]:
+    """Return (count_of_loaded_medicines, last_error_message).
+    Empty error string means last load was successful.
+    """
+    return len(_cache), _last_error
