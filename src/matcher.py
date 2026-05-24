@@ -64,14 +64,12 @@ def _score_medicine(med: Medicine, expanded_symptoms: list[str]) -> float:
 
     best_score = 0.0
     for sym in expanded_symptoms:
+        # Skip very short terms — fuzz gives false positives on 2-3 char Cyrillic words
+        if len(sym) < 4:
+            continue
         score = fuzz.partial_ratio(sym, med_text)
         if score > best_score:
             best_score = score
-
-        for token in med_text.split():
-            ts = fuzz.ratio(sym, token)
-            if ts > best_score:
-                best_score = ts
 
     return best_score
 
