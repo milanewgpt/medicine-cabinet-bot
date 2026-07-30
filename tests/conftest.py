@@ -100,7 +100,7 @@ def sample_medicines() -> list[Medicine]:
             category="простуда",
             symptoms="температура, насморк, головная боль, простуда",
             child_safe=False,
-            expiration=datetime.date(2026, 5, 15),
+            expiration=datetime.date(2028, 5, 15),
             comment="",
             status="Активен",
         ),
